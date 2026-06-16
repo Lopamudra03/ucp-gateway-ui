@@ -376,14 +376,17 @@ function SectionHeader({ dot, label, count }) {
 function Navbar({ parsedSpec, uploadError, onFileLoaded, onGenerate, generating, canGenerate, ucpVersion, setUcpVersion }) {
   const inputRef   = useRef();
   const [samplesOpen, setSamplesOpen] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
 
   const processFile = (text, name) => {
     try {
       const result = parseSwaggerContent(text);
+      setUploadedFileName(name);
       onFileLoaded(result, name, result.endpoints.length === 0
         ? "No endpoints found — check that your spec has a non-empty 'paths' object."
         : null);
     } catch (err) {
+      setUploadedFileName(name);
       onFileLoaded(null, name, err.message);
     }
   };
@@ -392,6 +395,7 @@ function Navbar({ parsedSpec, uploadError, onFileLoaded, onGenerate, generating,
     const f = e.target.files[0];
     if (!f) return;
     const reader = new FileReader();
+    setUploadedFileName(f.name);
     reader.onload = ev => processFile(ev.target.result, f.name);
     reader.readAsText(f);
     e.target.value = "";
@@ -454,7 +458,7 @@ function Navbar({ parsedSpec, uploadError, onFileLoaded, onGenerate, generating,
             ? <IconX />
             : <IconCheck color={C.green} />}
           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {uploadError || `${parsedSpec?.title} · ${parsedSpec?.endpoints.length} endpoints`}
+            {uploadError || `${uploadedFileName} · ${parsedSpec?.endpoints.length} endpoints`}
           </span>
         </div>
       )}
@@ -675,6 +679,7 @@ function CenterPanel({ mappings, setMappings, hasMapping }) {
   const [saved,     setSaved]   = useState(false);
   const [editId,    setEditId]  = useState(null);
   const [checked,   setChecked] = useState(new Set());
+  const [uploadedFileName, setUploadedFileName] = useState("");
 
   const tabMappings = mappings?.filter(m => m.fieldSource === tab) || [];
   const review   = tabMappings.filter(m => m.status === "review");
